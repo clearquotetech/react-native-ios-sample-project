@@ -1,0 +1,97 @@
+##############################################
+# React Native + ClearQuoteSDK (SUPPORTED)
+##############################################
+
+require Pod::Executable.execute_command(
+  'node',
+  ['-p', 'require.resolve("react-native/scripts/react_native_pods.rb")'],
+  __dir__
+).strip
+
+platform :ios, '16.0'
+prepare_react_native_project!
+
+############################################################
+# React Native requires static frameworks
+############################################################
+use_frameworks! :linkage => :static
+
+target 'MyApp' do
+
+  ############################################################
+  # REQUIRED — enables RN autolinking
+  ############################################################
+  config = use_native_modules!
+
+  ############################################################
+  # ClearQuoteSDK (DYNAMIC XCFRAMEWORK)
+  ############################################################
+  pod 'ClearQuoteSDK',
+      :git => 'https://github.com/clearquotetech/cq-ios-sdk.git',
+      :branch => 'RN-SUPPORT'
+
+  ############################################################
+  # React Native
+  ############################################################
+  use_react_native!(
+    :path => config[:reactNativePath],
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  ############################################################
+  # POST INSTALL PATCHES
+  ############################################################
+  post_install do |installer|
+
+    ##########################################################
+    # Make ClearQuoteSDK a TRUE dynamic framework
+    ##########################################################
+    installer.pods_project.targets.each do |target|
+
+      if target.name == 'ClearQuoteSDK'
+        target.build_configurations.each do |config|
+          config.build_settings['DEFINES_MODULE'] = 'YES'
+          config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+          config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+          config.build_settings['MACH_O_TYPE'] = 'mh_dylib'
+        end
+      end
+
+      ########################################################
+      # Fix RN duplicate module / linker issues
+      ########################################################
+      problematic = %w[
+        ReactCommon
+        react_runtime
+        React-Runtime
+        React-RuntimeHermes
+        React-RuntimeApple
+        React-RCTRuntime
+        ReactCodegen
+        react-native-safe-area-context
+      ]
+
+      if problematic.include?(target.name)
+        target.build_configurations.each do |config|
+          config.build_settings['DEFINES_MODULE'] = 'NO'
+          config.build_settings['CLANG_ENABLE_MODULES'] = 'NO'
+        end
+      end
+
+      ########################################################
+      # Deployment target consistency
+      ########################################################
+      target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+      end
+    end
+
+    ##########################################################
+    # React Native final hook
+    ##########################################################
+    react_native_post_install(
+      installer,
+      config[:reactNativePath]
+    )
+  end
+end
