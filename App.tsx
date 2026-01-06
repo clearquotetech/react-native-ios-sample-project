@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView } from 'react-native';
+import { useState } from 'react';
+
 import {
   View,
   Text,
   Button,
   TextInput,
   Alert,
-  NativeModules,
-  NativeEventEmitter,
-  StyleSheet,
+  StyleSheet
 } from 'react-native';
 
 import {
@@ -16,23 +14,24 @@ import {
   startInspection,
   logout,
 } from './ClearQuoteSDK';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function App() {
 
   const [sdkKey, setSdkKey] = useState('');
 
-  const initSDK = async () => {
-  if (!sdkKey.trim()) {
-    Alert.alert('Error', 'Please enter SDK Key');
-    return;
-  }
+  const initializeSDK = async () => {
+    if (!sdkKey.trim()) {
+      Alert.alert('Error', 'Please enter SDK Key');
+      return;
+    }
 
-  try {
-    const result = await NativeModules.ClearQuoteModule.initSDK(sdkKey);
-    Alert.alert('SDK Init Result', JSON.stringify(result, null, 2));
-  } catch (e: any) {
-    Alert.alert('Init Failed', e.message || 'Unknown error');
-  }
+    try {
+      const result = await initSDK(sdkKey);
+      Alert.alert('SDK Init Result', JSON.stringify(result, null, 2));
+    } catch (e: any) {
+      Alert.alert('Init Failed', e.message || 'Unknown error');
+    }
   };
 
   const onStartInspection = async () => {
@@ -50,31 +49,18 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-    <Text style={{
-    borderWidth: 1,
-    padding: 12,
-    fontSize: 16,
-    marginHorizontal: 16,
-  }}>ClearQuote SDK Key</Text>
+      <Text style={styles.text}>ClearQuote SDK Key</Text>
 
-<TextInput
-    style={{
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 16,
-    marginHorizontal: 16,
-  }}
-  placeholder="Enter SDK Key"
-  value={sdkKey}
-  onChangeText={setSdkKey}
-  autoCapitalize="none"
-  autoCorrect={false}
-/>
+      <TextInput
+        style={styles.textInput}
+        placeholder="Enter SDK Key"
+        value={sdkKey}
+        onChangeText={setSdkKey}
+        autoCapitalize="none"
+        autoCorrect={false}
+      />
       <View style={styles.button}>
-        <Button title="Init SDK" onPress={initSDK} />
+        <Button title="Init SDK" onPress={initializeSDK} />
       </View>
 
       <View style={styles.button}>
@@ -97,4 +83,19 @@ const styles = StyleSheet.create({
   button: {
     marginVertical: 10,
   },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 16,
+    marginHorizontal: 16,
+  },
+  text: {
+    borderWidth: 1,
+    padding: 12,
+    fontSize: 16,
+    marginHorizontal: 16,
+  }
 });
