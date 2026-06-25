@@ -43,6 +43,18 @@ target 'MyApp' do
   ############################################################
   post_install do |installer|
 
+    require 'fileutils'
+
+svgkit_path = File.join(installer.sandbox.pod_dir('SVGKit'), 'Source')
+Dir.glob(File.join(svgkit_path, '**', '*.{h,m}')).each do |file|
+  FileUtils.chmod("u+w", file)
+  
+  text = File.read(file)
+  new_contents = text.gsub('Node.h', 'SVGKit/Node.h')
+  File.open(file, 'w') { |f| f.write(new_contents) }
+end
+
+
     ##########################################################
     # Make ClearQuoteSDK a TRUE dynamic framework
     ##########################################################
