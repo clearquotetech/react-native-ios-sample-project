@@ -1,101 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { StyleSheet } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-import {
-  View,
-  Text,
-  Button,
-  TextInput,
-  Alert,
-  StyleSheet
-} from 'react-native';
-
-import {
-  initSDK,
-  startInspection,
-  logout,
-} from './ClearQuoteSDK';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import InitializeScreen from './InitializeScreen';
+import InspectionScreen from './InspectionScreen';
+import { isSDKInitialized } from './ClearQuoteSDK';
 
 export default function App() {
+  const [screen, setScreen] = useState<'initialize' | 'inspection'>('initialize');
 
-  const [sdkKey, setSdkKey] = useState('');
-
-  const initializeSDK = async () => {
-    if (!sdkKey.trim()) {
-      Alert.alert('Error', 'Please enter SDK Key');
-      return;
-    }
-
+  useEffect(() => {
     try {
-      const result = await initSDK(sdkKey);
-      Alert.alert('SDK Init Result', JSON.stringify(result, null, 2));
-    } catch (e: any) {
-      Alert.alert('Init Failed', e.message || 'Unknown error');
+      if (isSDKInitialized()) {
+        setScreen('inspection');
+      }
+    } catch {
+      // Keep the initialize screen if native module is unavailable.
     }
-  };
-
-  const onStartInspection = async () => {
-    try {
-      await startInspection();
-    } catch (e: any) {
-      Alert.alert('Error', e?.message ?? 'Start failed');
-    }
-  };
-
-  const onLogout = () => {
-    logout();
-    Alert.alert('Logout', 'Done');
-  };
+  }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.text}>ClearQuote SDK Key</Text>
-
-      <TextInput
-        style={styles.textInput}
-        placeholder="Enter SDK Key"
-        value={sdkKey}
-        onChangeText={setSdkKey}
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
-      <View style={styles.button}>
-        <Button title="Init SDK" onPress={initializeSDK} />
-      </View>
-
-      <View style={styles.button}>
-        <Button title="Start Inspection" onPress={onStartInspection} />
-      </View>
-
-      <View style={styles.button}>
-        <Button title="Logout" onPress={onLogout} />
-      </View>
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        {screen === 'inspection' ? (
+          <InspectionScreen onLogoutDone={() => setScreen('initialize')} />
+        ) : (
+          <InitializeScreen onInitSuccess={() => setScreen('inspection')} />
+        )}
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
   },
-  button: {
-    marginVertical: 10,
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 16,
-    marginHorizontal: 16,
-  },
-  text: {
-    borderWidth: 1,
-    padding: 12,
-    fontSize: 16,
-    marginHorizontal: 16,
-  }
 });
