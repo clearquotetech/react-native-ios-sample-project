@@ -22,3 +22,17 @@ export function startInspection(): Promise<any> {
 export function logout(): void {
   ClearQuoteModule.logout();
 }
+
+/**
+ * Get dealer code
+ */
+export function getDealerCode(): string | null {
+  return ClearQuoteModule.getDealerCode();
+}
+
+/**
+ * Check if SDK is initialized
+ */
+export function isSDKInitialized(): boolean {
+  return ClearQuoteModule().isSDKInitialized();
+}

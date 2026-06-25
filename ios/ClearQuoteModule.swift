@@ -71,6 +71,28 @@ class ClearQuoteModule: NSObject {
   static func requiresMainQueueSetup() -> Bool {
     return true
   }
+
+
+  @objc(getDealerCode)
+  func getDealerCode() -> String? {
+    performOnMainThread {
+      ClearQuote.shared.getCurrentDealerCode()
+    }
+  }
+
+  @objc(isSDKInitialized)
+  func isSDKInitialized() -> Bool {
+    performOnMainThread {
+      ClearQuote.shared.isCQSDKInitialized()
+    }
+  }
+
+  private func performOnMainThread<T>(_ work: () -> T) -> T {
+    if Thread.isMainThread {
+      return work()
+    }
+    return DispatchQueue.main.sync(execute: work)
+  }
 }
 
 extension ClearQuoteModule: ClearQuoteSDKDelegate {

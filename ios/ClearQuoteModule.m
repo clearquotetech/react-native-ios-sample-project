@@ -15,4 +15,8 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(logout)
 
+RCT_EXTERN_METHOD(getDealerCode)
+
+RCT_EXTERN_METHOD(isSDKInitialized)
+
 @end
