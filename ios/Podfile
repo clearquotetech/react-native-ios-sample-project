@@ -45,14 +45,17 @@ target 'MyApp' do
 
     require 'fileutils'
 
-svgkit_path = File.join(installer.sandbox.pod_dir('SVGKit'), 'Source')
-Dir.glob(File.join(svgkit_path, '**', '*.{h,m}')).each do |file|
-  FileUtils.chmod("u+w", file)
-  
-  text = File.read(file)
-  new_contents = text.gsub('Node.h', 'SVGKit/Node.h')
-  File.open(file, 'w') { |f| f.write(new_contents) }
-end
+    # SVGKit uses bare "Node.h" imports that break with static frameworks.
+    # Only patch exact import lines — naive gsub stacks SVGKit/ on every pod install.
+    svgkit_path = File.join(installer.sandbox.pod_dir('SVGKit'), 'Source')
+    if File.directory?(svgkit_path)
+      Dir.glob(File.join(svgkit_path, '**', '*.{h,m}')).each do |file|
+        FileUtils.chmod('u+w', file)
+        text = File.read(file)
+        new_contents = text.gsub(/#import "Node\.h"/, '#import "SVGKit/Node.h"')
+        File.open(file, 'w') { |f| f.write(new_contents) } if new_contents != text
+      end
+    end
 
 
     ##########################################################
