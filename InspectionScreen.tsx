@@ -161,11 +161,12 @@ export default function InspectionScreen({ onLogoutDone }: Readonly<InspectionSc
     };
 
     try {
-      await startInspection(
+      const result = await startInspection(
         buildClientAttrs(),
         buildInputDetails(),
         userFlowParams,
       );
+      Alert.alert('Inspection Status', `Started: ${result.started} \nMessage: ${result.message} \nCode: ${result.code}`);
     } catch (e: any) {
       Alert.alert('Error', e?.message ?? 'Start failed');
     }
