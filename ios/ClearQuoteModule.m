@@ -1,6 +1,7 @@
 #import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 
-@interface RCT_EXTERN_MODULE(ClearQuoteModule, NSObject)
+@interface RCT_EXTERN_MODULE(ClearQuoteModule, RCTEventEmitter)
 
 RCT_EXTERN_METHOD(
   initSDK:(NSString *)key
@@ -9,14 +10,17 @@ RCT_EXTERN_METHOD(
 )
 
 RCT_EXTERN_METHOD(
-  startInspection:(RCTPromiseResolveBlock)resolve
+  startInspection:(NSDictionary *)clientAttrs
+  inputDetails:(NSDictionary *)inputDetails
+  userFlowParams:(NSDictionary *)userFlowParams
+  resolver:(RCTPromiseResolveBlock)resolve
   rejecter:(RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(logout)
 
-RCT_EXTERN_METHOD(getDealerCode)
+RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(getDealerCode)
 
-RCT_EXTERN_METHOD(isSDKInitialized)
+RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(isSDKInitialized)
 
 @end

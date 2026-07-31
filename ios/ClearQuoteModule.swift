@@ -11,7 +11,21 @@ import UIKit
 import React
 
 @objc(ClearQuoteModule)
-class ClearQuoteModule: NSObject {
+class ClearQuoteModule: RCTEventEmitter {
+
+  private var hasListeners = false
+
+  override func supportedEvents() -> [String]! {
+    ["inspectionCompletionStatus"]
+  }
+
+  override func startObserving() {
+    hasListeners = true
+  }
+
+  override func stopObserving() {
+    hasListeners = false
+  }
 
   @objc(initSDK:resolver:rejecter:)
   func initSDK(
@@ -38,11 +52,18 @@ class ClearQuoteModule: NSObject {
     }
   }
 
-  @objc(startInspection:rejecter:)
+  @objc(startInspection:inputDetails:userFlowParams:resolver:rejecter:)
   func startInspection(
+    _ clientAttrs: NSDictionary?,
+    inputDetails: NSDictionary?,
+    userFlowParams: NSDictionary?,
     resolver resolve: @escaping RCTPromiseResolveBlock,
     rejecter reject: @escaping RCTPromiseRejectBlock
   ) {
+    let attrs = Self.makeClientAttrs(from: clientAttrs)
+    let details = Self.makeInputDetails(from: inputDetails)
+    let flowParams = Self.makeUserFlowParams(from: userFlowParams)
+
     DispatchQueue.main.async {
       guard let rootVC = UIApplication.shared.topMostViewController() else {
         reject("NO_VC", "No ViewController", nil)
@@ -51,7 +72,10 @@ class ClearQuoteModule: NSObject {
 
       ClearQuote.shared.startInspection(
         baseVC: rootVC,
-        clearQuoteSdkDelegate: self
+        clearQuoteSdkDelegate: self,
+        clientAttrs: attrs,
+        inputDetails: details,
+        userFlowParams: flowParams
       ) { started, message, code in
         resolve([
           "started": started,
@@ -62,16 +86,87 @@ class ClearQuoteModule: NSObject {
     }
   }
 
+  private static func makeClientAttrs(from dictionary: NSDictionary?) -> CQSDKClientAttrs? {
+    guard let dictionary else { return nil }
+
+    return CQSDKClientAttrs(
+      userName: dictionary["userName"] as? String,
+      dealer: dictionary["dealer"] as? String,
+      dealerIdentifier: dictionary["dealerIdentifier"] as? String,
+      client_unique_id: dictionary["client_unique_id"] as? String,
+      //organisationId: dictionary["organisationId"] as? String
+    )
+  }
+
+  private static func makeInputDetails(from dictionary: NSDictionary?) -> CQSDKInputDetails? {
+    guard let dictionary else { return nil }
+
+    let customerDict = dictionary["customerDetails"] as? NSDictionary
+    let vehicleDict = dictionary["vehicleDetails"] as? NSDictionary
+    let quoteDict = dictionary["quoteData"] as? NSDictionary
+
+    let customerDetails: CQSDKCustomerDetails? = customerDict.map {
+      CQSDKCustomerDetails(
+        name: $0["name"] as? String,
+        email: $0["email"] as? String,
+        dialCode: $0["dialCode"] as? String,
+        phoneNumber: $0["phoneNumber"] as? String
+      )
+    }
+
+    let vehicleDetails: CQSDKVehicleDetails? = vehicleDict.map {
+      CQSDKVehicleDetails(
+        regNumber: $0["regNumber"] as? String,
+        make: $0["make"] as? String,
+        model: $0["model"] as? String,
+        bodyStyle: $0["bodyStyle"] as? String,
+        fuelType: $0["fuelType"] as? String,
+        variant: $0["variant"] as? String
+      )
+    }
+
+    let quoteData: CQSDKQuoteData? = quoteDict.map {
+      CQSDKQuoteData(
+        inspectionType: $0["inspectionType"] as? String,
+        fleetImageType: $0["fleetImageType"] as? String
+      )
+    }
+
+    return CQSDKInputDetails(
+      customerDetails: customerDetails,
+      vehicleDetails: vehicleDetails,
+      quoteData: quoteData
+    )
+  }
+
+  private static func makeUserFlowParams(from dictionary: NSDictionary?) -> CQSDKUserFlowParams? {
+    guard let dictionary else { return nil }
+
+    return CQSDKUserFlowParams(
+      isOffline: Self.boolValue(from: dictionary, key: "isOffline"),
+      skipInputPage: Self.boolValue(from: dictionary, key: "skipInputPage")
+    )
+  }
+
+  private static func boolValue(from dictionary: NSDictionary, key: String) -> Bool? {
+    if let value = dictionary[key] as? Bool {
+      return value
+    }
+    if let number = dictionary[key] as? NSNumber {
+      return number.boolValue
+    }
+    return nil
+  }
+
   @objc(logout)
   func logout() {
     ClearQuote.shared.logout()
   }
-  
-  @objc
-  static func requiresMainQueueSetup() -> Bool {
-    return true
-  }
 
+  @objc
+  override static func requiresMainQueueSetup() -> Bool {
+    true
+  }
 
   @objc(getDealerCode)
   func getDealerCode() -> String? {
@@ -80,10 +175,11 @@ class ClearQuoteModule: NSObject {
     }
   }
 
+  /// Returns `NSNumber` so the ObjC/TurboModule interop layer can retain a real object.
   @objc(isSDKInitialized)
-  func isSDKInitialized() -> Bool {
+  func isSDKInitialized() -> NSNumber {
     performOnMainThread {
-      ClearQuote.shared.isCQSDKInitialized()
+      NSNumber(value: ClearQuote.shared.isCQSDKInitialized())
     }
   }
 
@@ -96,8 +192,27 @@ class ClearQuoteModule: NSObject {
 }
 
 extension ClearQuoteModule: ClearQuoteSDKDelegate {
-  func inspectionCompletionStatus(identifier: String, message: String, code: Int, isOffline: Bool, serverQuoteId: String?, serverInspectionId: String?) {
-    
+  func inspectionCompletionStatus(
+    identifier: String,
+    message: String,
+    code: Int,
+    isOffline: Bool,
+    serverQuoteId: String?,
+    serverInspectionId: String?
+  ) {
+    guard hasListeners else { return }
+
+    sendEvent(
+      withName: "inspectionCompletionStatus",
+      body: [
+        "identifier": identifier,
+        "message": message,
+        "code": code,
+        "isOffline": isOffline,
+        "serverQuoteId": serverQuoteId ?? NSNull(),
+        "serverInspectionId": serverInspectionId ?? NSNull(),
+      ]
+    )
   }
 }
 

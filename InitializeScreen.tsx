@@ -3,10 +3,10 @@ import { useState } from 'react';
 import {
   View,
   Text,
-  Button,
   TextInput,
   Alert,
   StyleSheet,
+  Pressable,
 } from 'react-native';
 import { initSDK } from './ClearQuoteSDK';
 
@@ -53,9 +53,15 @@ export default function InitializeScreen({ onInitSuccess }: Readonly<InitializeS
         autoCapitalize="none"
         autoCorrect={false}
       />
-      <View style={styles.button}>
-        <Button title="Initialize SDK" onPress={initializeSDK} />
-      </View>
+      <Pressable
+        style={({ pressed }) => [
+          styles.startButton,
+          pressed && styles.startButtonPressed,
+        ]}
+        onPress={initializeSDK}
+      >
+        <Text style={styles.startButtonText}>Initialize SDK</Text>
+      </Pressable>
       </View>
     </View>
   );
@@ -75,9 +81,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  button: {
-    marginVertical: 10,
-  },
   textInput: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -96,5 +99,22 @@ const styles = StyleSheet.create({
     marginTop: 16,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  startButton: {
+    marginVertical: 10,
+    marginHorizontal: 16,
+    backgroundColor: '#007AFF',
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  startButtonPressed: {
+    opacity: 0.8,
+  },
+  startButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
