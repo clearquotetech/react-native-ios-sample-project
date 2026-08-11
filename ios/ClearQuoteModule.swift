@@ -163,6 +163,11 @@ class ClearQuoteModule: RCTEventEmitter {
     ClearQuote.shared.logout()
   }
 
+  @objc(manualOfflineSync)
+  func manualOfflineSync() {
+    ClearQuote.shared.initiateOfflineInspectionsSync()
+  }
+
   @objc
   override static func requiresMainQueueSetup() -> Bool {
     true

@@ -8,13 +8,13 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native';
-import { initSDK } from './ClearQuoteSDK';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { ClearQuoteSDK } from '../ClearQuoteSDK';
+import type { RootStackParamList } from '../types/navigationTypes';
 
-type InitializeScreenProps = {
-  onInitSuccess: () => void;
-};
+type Props = NativeStackScreenProps<RootStackParamList, 'Initialize'>;
 
-export default function InitializeScreen({ onInitSuccess }: Readonly<InitializeScreenProps>) {
+export default function InitializeScreen({ navigation }: Readonly<Props>) {
   const [sdkKey, setSdkKey] = useState('');
 
   const initializeSDK = async () => {
@@ -24,9 +24,9 @@ export default function InitializeScreen({ onInitSuccess }: Readonly<InitializeS
     }
 
     try {
-      const result = await initSDK(sdkKey);
+      const result = await ClearQuoteSDK.initSDK(sdkKey);
       if (result.code === 200) {
-        onInitSuccess();
+        navigation.replace('Inspection');
       } else {
         Alert.alert('SDK Init Result', JSON.stringify(result, null, 2));
       }

@@ -36,7 +36,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>For capturing vehicle images</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>Location is used to tag vehicle inspection photos.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

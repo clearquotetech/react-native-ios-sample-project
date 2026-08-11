@@ -12,19 +12,16 @@ import {
   Switch,
   Pressable,
 } from 'react-native';
-import {
-  startInspection,
-  logout,
-  getDealerCode,
-  addInspectionCompletionListener,
-  type ClientAttrs,
-  type InputDetails,
-  type UserFlowParams,
-} from './ClearQuoteSDK';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { ClearQuoteSDK } from '../ClearQuoteSDK';
+import type {
+  ClientAttrs,
+  InputDetails,
+  UserFlowParams,
+} from '../types/clear_quote_type';
+import type { RootStackParamList } from '../types/navigationTypes';
 
-type InspectionScreenProps = {
-  onLogoutDone: () => void;
-};
+type Props = NativeStackScreenProps<RootStackParamList, 'Inspection'>;
 
 function optionalTrim(value: string): string | undefined {
   const trimmed = value.trim();
@@ -68,7 +65,7 @@ function Field({
   );
 }
 
-export default function InspectionScreen({ onLogoutDone }: Readonly<InspectionScreenProps>) {
+export default function InspectionScreen({ navigation }: Readonly<Props>) {
   const [dealerCode, setDealerCode] = useState<string | null>(null);
 
   // Client attrs
@@ -101,14 +98,14 @@ export default function InspectionScreen({ onLogoutDone }: Readonly<InspectionSc
 
   useEffect(() => {
     try {
-      setDealerCode(getDealerCode());
+      setDealerCode(ClearQuoteSDK.getDealerCode());
     } catch {
       setDealerCode(null);
     }
   }, []);
 
   useEffect(() => {
-    const subscription = addInspectionCompletionListener(status => {
+    const subscription = ClearQuoteSDK.addInspectionCompletionListener(status => {
       Alert.alert(
         'Inspection Status',
         [
@@ -161,20 +158,27 @@ export default function InspectionScreen({ onLogoutDone }: Readonly<InspectionSc
     };
 
     try {
-      const result = await startInspection(
+      const {started, message, code} = await ClearQuoteSDK.startInspection(
         buildClientAttrs(),
         buildInputDetails(),
         userFlowParams,
       );
-      Alert.alert('Inspection Status', `Started: ${result.started} \nMessage: ${result.message} \nCode: ${result.code}`);
+      if (started) { return };
+
+       Alert.alert('Inspection Status', `Started: ${started} \nMessage: ${message} \nCode: ${code}`);
+
     } catch (e: any) {
       Alert.alert('Error', e?.message ?? 'Start failed');
     }
   };
 
   const onLogout = () => {
-    logout();
-    onLogoutDone();
+    try {
+      ClearQuoteSDK.logout();
+      navigation.replace('Initialize');
+    } catch (e: any) {
+      Alert.alert('Error', e?.message ?? 'Logout failed');
+    }
   };
 
   return (
@@ -184,10 +188,12 @@ export default function InspectionScreen({ onLogoutDone }: Readonly<InspectionSc
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Inspection Input</Text>
+          <Text style={styles.title}>Start Inspection</Text>
         </View>
 
-        <Text style={styles.text}>Dealer Code: {dealerCode ?? '—'}</Text>
+        <Text style={styles.text}>
+          Dealer Code: <Text style={styles.dealerCodeValue}>{dealerCode ?? '—'}</Text>
+        </Text>
 
         <Text style={styles.sectionTitle}>Client Attrs</Text>
         <Field label="User Name (Optional)" value={userName} onChangeText={setUserName} placeholder="userName" />
@@ -247,7 +253,7 @@ export default function InspectionScreen({ onLogoutDone }: Readonly<InspectionSc
           />
         </View>
 
-        <Text style={styles.sectionTitle}>Vehicle Details (If Skipping Input)</Text>
+        <Text style={styles.sectionTitle}>Vehicle Details (If Skipping Input in SDK)</Text>
         <Field
           label="Registration Number"
           value={regNumber}
@@ -271,7 +277,7 @@ export default function InspectionScreen({ onLogoutDone }: Readonly<InspectionSc
         />
         <Field label="Variant" value={variant} onChangeText={setVariant} placeholder="variant" />
 
-        <Text style={styles.sectionTitle}>Quote Data (If Skipping Input)</Text>
+        <Text style={styles.sectionTitle}>Quote Data (If Skipping Input in SDK)</Text>
         <Field
           label="Inspection Type"
           value={inspectionType}
@@ -308,6 +314,16 @@ export default function InspectionScreen({ onLogoutDone }: Readonly<InspectionSc
           onPress={() => onStartInspection(true)}
         >
           <Text style={styles.startButtonText}>Start Inspection (Skip Input)</Text>
+        </Pressable>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.startButton,
+            pressed && styles.startButtonPressed,
+          ]}
+          onPress={() => ClearQuoteSDK.manualOfflineSync()}
+        >
+          <Text style={styles.startButtonText}>Manual Offline Sync</Text>
         </Pressable>
 
         <View style={styles.button}>
@@ -349,6 +365,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     marginHorizontal: 16,
+  },
+  dealerCodeValue: {
+    fontWeight: '700',
   },
   label: {
     paddingTop: 4,
