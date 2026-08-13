@@ -16,6 +16,13 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Initialize'>;
 
 export default function InitializeScreen({ navigation }: Readonly<Props>) {
   const [sdkKey, setSdkKey] = useState('');
+  const [sdkVersion] = useState(() => {
+    try {
+      return ClearQuoteSDK.getSDKVersion();
+    } catch {
+      return null;
+    }
+  });
 
   const initializeSDK = async () => {
     if (!sdkKey.trim()) {
@@ -28,7 +35,7 @@ export default function InitializeScreen({ navigation }: Readonly<Props>) {
       if (result.code === 200) {
         navigation.replace('Inspection');
       } else {
-        Alert.alert('SDK Init Result', JSON.stringify(result, null, 2));
+        Alert.alert('SDK Init Result', result.message);
       }
     } catch (e: any) {
       Alert.alert('Init Failed', e.message || 'Unknown error');
@@ -63,6 +70,10 @@ export default function InitializeScreen({ navigation }: Readonly<Props>) {
         <Text style={styles.startButtonText}>Initialize SDK</Text>
       </Pressable>
       </View>
+
+      {sdkVersion != null && (
+        <Text style={styles.version}>SDK Version {sdkVersion}</Text>
+      )}
     </View>
   );
 }
@@ -116,5 +127,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  version: {
+    fontSize: 18,
+    color: 'black',
+    fontWeight: '600',
+    textAlign: 'center',
+    paddingBottom: 24,
   },
 });

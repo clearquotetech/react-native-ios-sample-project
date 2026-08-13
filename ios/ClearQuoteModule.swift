@@ -12,21 +12,21 @@ import React
 
 @objc(ClearQuoteModule)
 class ClearQuoteModule: RCTEventEmitter {
-
+  
   private var hasListeners = false
-
+  
   override func supportedEvents() -> [String]! {
     ["inspectionCompletionStatus"]
   }
-
+  
   override func startObserving() {
     hasListeners = true
   }
-
+  
   override func stopObserving() {
     hasListeners = false
   }
-
+  
   @objc(initSDK:resolver:rejecter:)
   func initSDK(
     _ key: String,
@@ -38,7 +38,7 @@ class ClearQuoteModule: RCTEventEmitter {
         reject("NO_VC", "No ViewController", nil)
         return
       }
-
+      
       ClearQuote.shared.initSDK(
         baseVC: rootVC,
         key: key
@@ -51,7 +51,7 @@ class ClearQuoteModule: RCTEventEmitter {
       }
     }
   }
-
+  
   @objc(startInspection:inputDetails:userFlowParams:resolver:rejecter:)
   func startInspection(
     _ clientAttrs: NSDictionary?,
@@ -63,13 +63,13 @@ class ClearQuoteModule: RCTEventEmitter {
     let attrs = Self.makeClientAttrs(from: clientAttrs)
     let details = Self.makeInputDetails(from: inputDetails)
     let flowParams = Self.makeUserFlowParams(from: userFlowParams)
-
+    
     DispatchQueue.main.async {
       guard let rootVC = UIApplication.shared.topMostViewController() else {
         reject("NO_VC", "No ViewController", nil)
         return
       }
-
+      
       ClearQuote.shared.startInspection(
         baseVC: rootVC,
         clearQuoteSdkDelegate: self,
@@ -85,10 +85,10 @@ class ClearQuoteModule: RCTEventEmitter {
       }
     }
   }
-
+  
   private static func makeClientAttrs(from dictionary: NSDictionary?) -> CQSDKClientAttrs? {
     guard let dictionary else { return nil }
-
+    
     return CQSDKClientAttrs(
       userName: dictionary["userName"] as? String,
       dealer: dictionary["dealer"] as? String,
@@ -97,14 +97,14 @@ class ClearQuoteModule: RCTEventEmitter {
       //organisationId: dictionary["organisationId"] as? String
     )
   }
-
+  
   private static func makeInputDetails(from dictionary: NSDictionary?) -> CQSDKInputDetails? {
     guard let dictionary else { return nil }
-
+    
     let customerDict = dictionary["customerDetails"] as? NSDictionary
     let vehicleDict = dictionary["vehicleDetails"] as? NSDictionary
     let quoteDict = dictionary["quoteData"] as? NSDictionary
-
+    
     let customerDetails: CQSDKCustomerDetails? = customerDict.map {
       CQSDKCustomerDetails(
         name: $0["name"] as? String,
@@ -113,7 +113,7 @@ class ClearQuoteModule: RCTEventEmitter {
         phoneNumber: $0["phoneNumber"] as? String
       )
     }
-
+    
     let vehicleDetails: CQSDKVehicleDetails? = vehicleDict.map {
       CQSDKVehicleDetails(
         regNumber: $0["regNumber"] as? String,
@@ -124,30 +124,30 @@ class ClearQuoteModule: RCTEventEmitter {
         variant: $0["variant"] as? String
       )
     }
-
+    
     let quoteData: CQSDKQuoteData? = quoteDict.map {
       CQSDKQuoteData(
         inspectionType: $0["inspectionType"] as? String,
         fleetImageType: $0["fleetImageType"] as? String
       )
     }
-
+    
     return CQSDKInputDetails(
       customerDetails: customerDetails,
       vehicleDetails: vehicleDetails,
       quoteData: quoteData
     )
   }
-
+  
   private static func makeUserFlowParams(from dictionary: NSDictionary?) -> CQSDKUserFlowParams? {
     guard let dictionary else { return nil }
-
+    
     return CQSDKUserFlowParams(
       isOffline: Self.boolValue(from: dictionary, key: "isOffline"),
       skipInputPage: Self.boolValue(from: dictionary, key: "skipInputPage")
     )
   }
-
+  
   private static func boolValue(from dictionary: NSDictionary, key: String) -> Bool? {
     if let value = dictionary[key] as? Bool {
       return value
@@ -157,29 +157,36 @@ class ClearQuoteModule: RCTEventEmitter {
     }
     return nil
   }
-
+  
   @objc(logout)
   func logout() {
     ClearQuote.shared.logout()
   }
-
+  
   @objc(manualOfflineSync)
   func manualOfflineSync() {
     ClearQuote.shared.initiateOfflineInspectionsSync()
   }
-
+  
   @objc
   override static func requiresMainQueueSetup() -> Bool {
     true
   }
-
+  
   @objc(getDealerCode)
   func getDealerCode() -> String? {
     performOnMainThread {
       ClearQuote.shared.getCurrentDealerCode()
     }
   }
-
+  
+  @objc(getSDKVersion)
+  func getSDKVersion() -> String {
+    performOnMainThread {
+      ClearQuote.shared.getCurrentSDKVersion()
+    }
+  }
+  
   /// Returns `NSNumber` so the ObjC/TurboModule interop layer can retain a real object.
   @objc(isSDKInitialized)
   func isSDKInitialized() -> NSNumber {
@@ -187,7 +194,7 @@ class ClearQuoteModule: RCTEventEmitter {
       NSNumber(value: ClearQuote.shared.isCQSDKInitialized())
     }
   }
-
+  
   private func performOnMainThread<T>(_ work: () -> T) -> T {
     if Thread.isMainThread {
       return work()
@@ -206,7 +213,7 @@ extension ClearQuoteModule: ClearQuoteSDKDelegate {
     serverInspectionId: String?
   ) {
     guard hasListeners else { return }
-
+    
     sendEvent(
       withName: "inspectionCompletionStatus",
       body: [
@@ -225,30 +232,30 @@ extension UIApplication {
   func topMostViewController(
     base: UIViewController? = {
       if #available(iOS 13.0, *) {
-        return UIApplication.shared
-          .connectedScenes
-          .compactMap { $0 as? UIWindowScene }
-          .flatMap { $0.windows }
-          .first { $0.isKeyWindow }?
-          .rootViewController
-      } else {
-        return UIApplication.shared.keyWindow?.rootViewController
-      }
+    return UIApplication.shared
+      .connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .flatMap { $0.windows }
+      .first { $0.isKeyWindow }?
+      .rootViewController
+  } else {
+    return UIApplication.shared.keyWindow?.rootViewController
+  }
     }()
   ) -> UIViewController? {
-
+    
     if let nav = base as? UINavigationController {
       return topMostViewController(base: nav.visibleViewController)
     }
-
+    
     if let tab = base as? UITabBarController {
       return topMostViewController(base: tab.selectedViewController)
     }
-
+    
     if let presented = base?.presentedViewController {
       return topMostViewController(base: presented)
     }
-
+    
     return base
   }
 }

@@ -52,6 +52,11 @@ export class ClearQuoteSDK {
     return ClearQuoteModule.getDealerCode();
   }
 
+  /** Get SDK version */
+  static getSDKVersion(): string {
+    return ClearQuoteModule.getSDKVersion();
+  }
+
   /** Check if SDK is initialized */
   static isSDKInitialized(): boolean {
     return ClearQuoteModule.isSDKInitialized();
