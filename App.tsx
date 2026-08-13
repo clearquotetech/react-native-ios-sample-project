@@ -1,32 +1,36 @@
-import { useState, useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StyleSheet } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-import InitializeScreen from './InitializeScreen';
-import InspectionScreen from './InspectionScreen';
-import { isSDKInitialized } from './ClearQuoteSDK';
+import InitializeScreen from './src/screens/InitializeScreen';
+import InspectionScreen from './src/screens/InspectionScreen';
+import { ClearQuoteSDK } from './src/ClearQuoteSDK';
+import type { RootStackParamList } from './src/types/navigationTypes';
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+function getInitialRouteName(): keyof RootStackParamList {
+  try {
+    return ClearQuoteSDK.isSDKInitialized() ? 'Inspection' : 'Initialize';
+  } catch {
+    return 'Initialize';
+  }
+}
 
 export default function App() {
-  const [screen, setScreen] = useState<'initialize' | 'inspection'>('initialize');
-
-  useEffect(() => {
-    try {
-      if (isSDKInitialized()) {
-        setScreen('inspection');
-      }
-    } catch {
-      // Keep the initialize screen if native module is unavailable.
-    }
-  }, []);
-
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        {screen === 'inspection' ? (
-          <InspectionScreen onLogoutDone={() => setScreen('initialize')} />
-        ) : (
-          <InitializeScreen onInitSuccess={() => setScreen('inspection')} />
-        )}
+        <NavigationContainer>
+          <Stack.Navigator
+            initialRouteName={getInitialRouteName()}
+            screenOptions={{ headerShown: false, orientation: 'portrait' }}
+          >
+            <Stack.Screen name="Initialize" component={InitializeScreen} />
+            <Stack.Screen name="Inspection" component={InspectionScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
       </SafeAreaView>
     </SafeAreaProvider>
   );
