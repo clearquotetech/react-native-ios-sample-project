@@ -94,7 +94,7 @@ class ClearQuoteModule: RCTEventEmitter {
       dealer: dictionary["dealer"] as? String,
       dealerIdentifier: dictionary["dealerIdentifier"] as? String,
       client_unique_id: dictionary["client_unique_id"] as? String,
-      //organisationId: dictionary["organisationId"] as? String
+      organisationId: dictionary["organisationId"] as? String
     )
   }
   
