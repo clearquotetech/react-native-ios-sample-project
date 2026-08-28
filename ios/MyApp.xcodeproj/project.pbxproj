@@ -595,8 +595,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/clearquotetech/cq-ios-sdk.git";
 			requirement = {
-				branch = "SD/SCRUM-765-swift-package-manager";
-				kind = branch;
+				kind = revision;
+				revision = ce9c67d5ef53fc5cb64fe8117faa675383131dd5;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

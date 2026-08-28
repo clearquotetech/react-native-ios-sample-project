@@ -33,8 +33,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/clearquotetech/cq-ios-sdk.git",
       "state" : {
-        "branch" : "SD/SCRUM-765-swift-package-manager",
-        "revision" : "edc63a4efab95137126312a96a5ab944fdc97996"
+        "revision" : "ce9c67d5ef53fc5cb64fe8117faa675383131dd5"
       }
     },
     {
