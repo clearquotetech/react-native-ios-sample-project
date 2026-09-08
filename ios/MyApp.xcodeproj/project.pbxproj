@@ -319,7 +319,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 42NU87XF89;
+				DEVELOPMENT_TEAM = 87A82WYPZS;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -332,13 +332,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6.0;
+				MARKETING_VERSION = 3.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.clearquote.CQ-iOS-SDK-Demo";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.clearquote.cq-sdk-demo";
 				PRODUCT_NAME = MyApp;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -359,7 +359,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 42NU87XF89;
+				DEVELOPMENT_TEAM = 87A82WYPZS;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/ModuleShims",
@@ -371,13 +371,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6.0;
+				MARKETING_VERSION = 3.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.clearquote.CQ-iOS-SDK-Demo";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.clearquote.cq-sdk-demo";
 				PRODUCT_NAME = MyApp;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -625,7 +625,7 @@
 			repositoryURL = "https://github.com/clearquotetech/cq-ios-sdk.git";
 			requirement = {
 				kind = revision;
-				revision = ce9c67d5ef53fc5cb64fe8117faa675383131dd5;
+				revision = 183de6496269ce0d8bdce082fb34be8fd0e4586e;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
