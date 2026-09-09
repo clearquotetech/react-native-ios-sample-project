@@ -10,7 +10,7 @@ The project serves as a **reference implementation** for third-party developers 
 
 - **iOS** — ClearQuote iOS SDK integrated via native bridge
 - **Android** — ⚠️ **Implementation pending** (React Native app shell only; ClearQuote Android SDK not integrated yet)
-- React Native (New Architecture compatible)
+- React Native **0.76+** (New Architecture compatible)
 - Tested on **iOS 16+**
 
 ---
@@ -19,6 +19,7 @@ The project serves as a **reference implementation** for third-party developers 
 
 ### Shared
 - Node.js **22.11+**
+- React Native **0.76+**
 - React Native CLI
 - Valid **ClearQuote SDK key**
 
@@ -69,6 +70,14 @@ Add the following to `ios/MyApp/Info.plist`:
 <key>NSLocationWhenInUseUsageDescription</key>
 <string>App needs your location while using the app to capture inspection locations and sync your inspections</string>
 ```
+
+### TensorFlowLite Info.plist run script
+
+The ClearQuote iOS SDK depends on TensorFlow Lite (`kewlbear/TensorFlowLiteC` via SPM). Those binary frameworks omit App Store–required Info.plist keys, which can fail App Store validation (`ITMS-90057` / `ITMS-90530`).
+
+This sample already includes an Xcode **Run Script** build phase named **Fix TensorFlowLite Info.plists**. It patches `CFBundleShortVersionString` and `MinimumOSVersion` on TensorFlowLiteC frameworks (SPM artifacts and copies embedded in the app) and re-signs them.
+
+When integrating into your own app, add the same run script to the app target (Build Phases → + → New Run Script Phase). Keep it **after** Embed Frameworks so it can patch the embedded copies.
 
 ### Run the app
 ```bash
