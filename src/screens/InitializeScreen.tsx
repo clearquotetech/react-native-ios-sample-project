@@ -72,7 +72,7 @@ export default function InitializeScreen({ navigation }: Readonly<Props>) {
       </View>
 
       {sdkVersion != null && (
-        <Text style={styles.version}>SDK Version {sdkVersion}</Text>
+        <Text style={styles.version}>SDK Version - {sdkVersion}</Text>
       )}
     </View>
   );

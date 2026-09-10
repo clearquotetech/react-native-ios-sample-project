@@ -10,7 +10,7 @@ The project serves as a **reference implementation** for third-party developers 
 
 - **iOS** — ClearQuote iOS SDK integrated via native bridge
 - **Android** — ⚠️ **Implementation pending** (React Native app shell only; ClearQuote Android SDK not integrated yet)
-- React Native (New Architecture compatible)
+- React Native **0.76+** (New Architecture compatible)
 - Tested on **iOS 16+**
 
 ---
@@ -19,6 +19,7 @@ The project serves as a **reference implementation** for third-party developers 
 
 ### Shared
 - Node.js **22.11+**
+- React Native **0.76+**
 - React Native CLI
 - Valid **ClearQuote SDK key**
 
@@ -64,9 +65,19 @@ Add the following to `ios/MyApp/Info.plist`:
 ```xml
 <key>NSCameraUsageDescription</key>
 <string>For capturing vehicle images</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>App needs your location while using the app to capture inspection locations and sync your inspections</string>
 <key>NSLocationWhenInUseUsageDescription</key>
-<string>Location is used to tag vehicle inspection photos.</string>
+<string>App needs your location while using the app to capture inspection locations and sync your inspections</string>
 ```
+
+### TensorFlowLite Info.plist run script
+
+The ClearQuote iOS SDK depends on TensorFlow Lite (`kewlbear/TensorFlowLiteC` via SPM). Those binary frameworks omit App Store–required Info.plist keys, which can fail App Store validation (`ITMS-90057` / `ITMS-90530`).
+
+This sample already includes an Xcode **Run Script** build phase named **Fix TensorFlowLite Info.plists**. It patches `CFBundleShortVersionString` and `MinimumOSVersion` on TensorFlowLiteC frameworks (SPM artifacts and copies embedded in the app) and re-signs them.
+
+When integrating into your own app, add the same run script to the app target (Build Phases → + → New Run Script Phase). Keep it **after** Embed Frameworks so it can patch the embedded copies.
 
 ### Run the app
 ```bash
@@ -86,15 +97,13 @@ The iOS native bridge (`ClearQuoteModule`) exposes ClearQuote SDK methods to Rea
 | `getDealerCode()` | Return the current dealer code |
 | `isSDKInitialized()` | Check whether the SDK is initialized |
 
-Additional ClearQuoteSDK APIs can be exposed through the native bridge as needed. See the [ClearQuote iOS SDK integration guide](https://docs.google.com/document/d/1eqHUg3L7mqA4E8vqslzpLoqoC_8qxv7wTUn_JneKQmY/edit?tab=t.0#heading=h.7jb0pjtyuhqy) AND [ClearQuote SDK Android integration doc](https://docs.google.com/document/d/1qaoIRasNhM7pLG6hKX2aLnKaZr35R-_8GSMnZpDO9Sw/edit?tab=t.0#heading=h.7jb0pjtyuhqy). for the full list of supported methods.
-
 ---
 
 ## 🤖 Android
 
 > ⚠️ **Status: Implementation pending**
 >
-> ClearQuote Android SDK integration (native module / bridge) is **not available yet**. The `android/` folder is a standard React Native shell only. SDK init, inspection, and related APIs will not work on Android until this work lands.
+> ClearQuote Android SDK integration (native module / bridge) is **not implemented yet**.
 
 ---
 
@@ -106,13 +115,15 @@ await ClearQuoteSDK.initSDK('YOUR_SDK_KEY');
 await ClearQuoteSDK.startInspection(clientAttrs, inputDetails, userFlowParams);
 ```
 
+Additional ClearQuoteSDK APIs can be exposed through the native bridge as needed. See the [ClearQuote iOS SDK integration guide](https://docs.google.com/document/d/1eqHUg3L7mqA4E8vqslzpLoqoC_8qxv7wTUn_JneKQmY/edit?tab=t.0#heading=h.7jb0pjtyuhqy) AND [ClearQuote SDK Android integration doc](https://docs.google.com/document/d/1qaoIRasNhM7pLG6hKX2aLnKaZr35R-_8GSMnZpDO9Sw/edit?tab=t.0#heading=h.7jb0pjtyuhqy). for the full list of supported methods.
+
 ---
 
 ## 📬 Support
 
 - https://github.com/clearquotetech/cq-ios-sdk/issues
 - sharath@clearquote.io
-- sanket@clearquote.io
+- rajappa@clearquote.io
 - akhila@clearquote.io
 
 ---

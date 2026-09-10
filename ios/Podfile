@@ -1,5 +1,5 @@
 ##############################################
-# React Native + ClearQuoteSDK (SUPPORTED)
+# React Native + ClearQuoteSDK (SPM)
 ##############################################
 
 require Pod::Executable.execute_command(
@@ -24,11 +24,9 @@ target 'MyApp' do
   config = use_native_modules!
 
   ############################################################
-  # ClearQuoteSDK (DYNAMIC XCFRAMEWORK)
+  # ClearQuoteSDK is installed via Swift Package Manager
+  # (see MyApp.xcodeproj → Package Dependencies)
   ############################################################
-  pod 'ClearQuoteSDK',
-      :git => 'https://github.com/clearquotetech/cq-ios-sdk.git',
-      :branch => 'RN-SUPPORT'
 
   ############################################################
   # React Native
@@ -43,38 +41,35 @@ target 'MyApp' do
   ############################################################
   post_install do |installer|
 
-    require 'fileutils'
+    ##########################################################
+    # Keep HERMES_CLI_PATH pointed at this checkout.
+    # Stale absolute paths break the RN bundle script after moves.
+    ##########################################################
+    hermesc = File.expand_path(
+      '../node_modules/hermes-compiler/hermesc/osx-bin/hermesc',
+      __dir__
+    )
+    %w[debug release].each do |config|
+      xcconfig = File.join(
+        installer.sandbox.root,
+        'Target Support Files/Pods-MyApp',
+        "Pods-MyApp.#{config}.xcconfig"
+      )
+      next unless File.exist?(xcconfig) && File.exist?(hermesc)
 
-    # SVGKit uses bare "Node.h" imports that break with static frameworks.
-    # Only patch exact import lines — naive gsub stacks SVGKit/ on every pod install.
-    svgkit_path = File.join(installer.sandbox.pod_dir('SVGKit'), 'Source')
-    if File.directory?(svgkit_path)
-      Dir.glob(File.join(svgkit_path, '**', '*.{h,m}')).each do |file|
-        FileUtils.chmod('u+w', file)
-        text = File.read(file)
-        new_contents = text.gsub(/#import "Node\.h"/, '#import "SVGKit/Node.h"')
-        File.open(file, 'w') { |f| f.write(new_contents) } if new_contents != text
-      end
+      contents = File.read(xcconfig)
+      updated = contents.gsub(
+        /^HERMES_CLI_PATH = .*$/,
+        "HERMES_CLI_PATH = #{hermesc}"
+      )
+      File.write(xcconfig, updated) if updated != contents
     end
 
-
     ##########################################################
-    # Make ClearQuoteSDK a TRUE dynamic framework
+    # Fix RN duplicate module / linker issues
     ##########################################################
     installer.pods_project.targets.each do |target|
 
-      if target.name == 'ClearQuoteSDK'
-        target.build_configurations.each do |config|
-          config.build_settings['DEFINES_MODULE'] = 'YES'
-          config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
-          config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
-          config.build_settings['MACH_O_TYPE'] = 'mh_dylib'
-        end
-      end
-
-      ########################################################
-      # Fix RN duplicate module / linker issues
-      ########################################################
       problematic = %w[
         ReactCommon
         react_runtime
