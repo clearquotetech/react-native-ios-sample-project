@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-only override of the config shipped by cq-android-sdk, which forbids all
+  cleartext traffic. Metro serves the JS bundle over plain HTTP, so the dev server
+  hosts must be exempted or the app cannot load a bundle.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- adb reverse (physical device) -->
+        <domain includeSubdomains="false">localhost</domain>
+        <!-- Android emulator host loopback -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <!-- Genymotion host loopback -->
+        <domain includeSubdomains="false">10.0.3.2</domain>
+    </domain-config>
+</network-security-config>

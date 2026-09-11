@@ -9,7 +9,7 @@ The project serves as a **reference implementation** for third-party developers 
 ## 📱 Supported Platforms
 
 - **iOS** — ClearQuote iOS SDK integrated via native bridge
-- **Android** — ⚠️ **Implementation pending** (React Native app shell only; ClearQuote Android SDK not integrated yet)
+- **Android** — ClearQuote Android SDK **3.1.0** integrated via native bridge
 - React Native **0.76+** (New Architecture compatible)
 - Tested on **iOS 16+**
 
@@ -29,7 +29,10 @@ The project serves as a **reference implementation** for third-party developers 
 - CocoaPods **1.15.2+**
 
 ### Android
-- To be implemented
+- Android Studio with Android SDK
+- **minSdk 26**, compile/target SDK **36**
+- JDK **17**
+- JitPack access (ClearQuote Android SDK is resolved from JitPack)
 
 ---
 
@@ -101,9 +104,52 @@ The iOS native bridge (`ClearQuoteModule`) exposes ClearQuote SDK methods to Rea
 
 ## 🤖 Android
 
-> ⚠️ **Status: Implementation pending**
->
-> ClearQuote Android SDK integration (native module / bridge) is **not implemented yet**.
+ClearQuote Android SDK **3.1.0** is integrated via a Kotlin native module (`ClearQuoteModule`) that matches the iOS bridge API used by [`src/ClearQuoteSDK.ts`](src/ClearQuoteSDK.ts).
+
+### Gradle
+
+The SDK is pulled from JitPack. [`android/settings.gradle`](android/settings.gradle) includes:
+
+```gradle
+maven { url = uri("https://jitpack.io") }
+```
+
+[`android/app/build.gradle`](android/app/build.gradle) declares:
+
+```gradle
+implementation("com.github.clearquotetech:cq-android-sdk:3.1.0")
+implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
+implementation("com.google.firebase:firebase-analytics-ktx")
+```
+
+Firebase Analytics is a transitive SDK dependency. This sample applies the Google Services plugin and ships [`android/app/google-services.json`](android/app/google-services.json) for `com.myapp`. Replace that file with your own Firebase Android app config before production use.
+
+### Required permissions and FileProvider
+
+The sample manifest includes camera, location, network, notifications, foreground-service, and storage permissions. It also registers a `FileProvider` with authority `${applicationId}.provider` and paths in `android/app/src/main/res/xml/file_paths.xml` (`ClearQuote/Images`, `ClearQuote/Videos`).
+
+### Run the app
+```bash
+npm run android
+# or
+npx react-native run-android
+```
+
+### Native bridge
+
+The Android native bridge (`ClearQuoteModule`) exposes the same methods as iOS:
+
+| Method | Description |
+|--------|-------------|
+| `initSDK(key)` | Initialize the SDK with your key |
+| `startInspection(clientAttrs, inputDetails, userFlowParams)` | Start a vehicle inspection |
+| `logout()` | Log out and clear session |
+| `manualOfflineSync()` | Trigger offline inspection sync |
+| `getDealerCode()` | Return the current dealer code |
+| `getSDKVersion()` | Return the native SDK version string |
+| `isSDKInitialized()` | Check whether the SDK is initialized |
+
+Inspection completion is emitted as the `inspectionCompletionStatus` event (listen via `ClearQuoteSDK.addInspectionCompletionListener`).
 
 ---
 
